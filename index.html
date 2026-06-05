@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dao × Xiaoke</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --coral: #fcb09f;
+            --white: #ffffff;
+            --gray-light: #f5f5f5;
+            --gray-dark: #2a2a2a;
+            --gray-text: #666666;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, var(--white) 0%, var(--gray-light) 100%);
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            background: var(--white);
+        }
+
+        .header {
+            padding: 16px 24px;
+            border-bottom: 0.7px solid #e8e8e8;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: var(--white);
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--white);
+        }
+
+        .avatar-xiaoke {
+            background: linear-gradient(135deg, #8b6f47 0%, #a0826d 100%);
+        }
+
+        .header-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header-name {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--gray-dark);
+        }
+
+        .header-status {
+            font-size: 12px;
+            color: var(--coral);
+            margin-top: 2px;
+        }
+
+        .messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 32px 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .messages::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .messages::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .messages::-webkit-scrollbar-thumb {
+            background: #ddd;
+            border-radius: 3px;
+        }
+
+        .message {
+            display: flex;
+            gap: 12px;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message.sent {
+            flex-direction: row-reverse;
+        }
+
+        .message-bubble {
+            max-width: 60%;
+            padding: 12px 16px;
+            border-radius: 12px;
+            line-height: 1.5;
+            word-wrap: break-word;
+            font-size: 14px;
+        }
+
+        .message.received .message-bubble {
+            background: var(--gray-light);
+            color: var(--gray-dark);
+            border: 0.7px solid #e8e8e8;
+        }
+
+        .message.sent .message-bubble {
+            background: var(--coral);
+            color: var(--white);
+        }
+
+        .message-time {
+            font-size: 12px;
+            color: var(--gray-text);
+            display: flex;
+            align-items: flex-end;
+            padding-bottom: 4px;
+        }
+
+        .input-area {
+            padding: 16px 24px 24px;
+            border-top: 0.7px solid #e8e8e8;
+            display: flex;
+            gap: 12px;
+            background: var(--white);
+        }
+
+        .input-field {
+            flex: 1;
+            padding: 12px 16px;
+            border: 0.7px solid #e8e8e8;
+            border-radius: 12px;
+            font-size: 14px;
+            font-family: inherit;
+            outline: none;
+            transition: border-color 0.2s;
+            background: var(--gray-light);
+        }
+
+        .input-field:focus {
+            border-color: var(--coral);
+            background: var(--white);
+        }
+
+        .input-field::placeholder {
+            color: var(--gray-text);
+        }
+
+        .send-button {
+            width: 44px;
+            height: 44px;
+            border: none;
+            border-radius: 12px;
+            background: var(--coral);
+            color: var(--white);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            flex-shrink: 0;
+            font-size: 18px;
+        }
+
+        .send-button:hover:not(:disabled) {
+            background: #f5a08f;
+            transform: scale(1.05);
+        }
+
+        .send-button:active:not(:disabled) {
+            transform: scale(0.95);
+        }
+
+        .send-button:disabled {
+            background: #ddd;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .empty-state {
+            text-align: center;
+            color: var(--gray-text);
+            margin-top: 40px;
+            font-size: 14px;
+        }
+
+        .empty-state-emoji {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+
+        @media (max-width: 600px) {
+            .messages {
+                padding: 16px 12px;
+            }
+
+            .message-bubble {
+                max-width: 85%;
+            }
+
+            .input-area {
+                padding: 12px 16px 20px;
+            }
+
+            .input-field,
+            .send-button {
+                height: 40px;
+            }
+
+            .send-button {
+                width: 40px;
+            }
+
+            .header {
+                padding: 12px 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="header-left">
+                <div class="avatar avatar-xiaoke">小</div>
+                <div class="header-info">
+                    <div class="header-name">小克</div>
+                    <div class="header-status">在线</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="messages" id="messagesContainer"></div>
+
+        <div class="input-area">
+            <input 
+                type="text" 
+                id="messageInput" 
+                class="input-field" 
+                placeholder="给小克说点什么..."
+                autocomplete="off"
+            >
+            <button class="send-button" id="sendButton" disabled>➤</button>
+        </div>
+    </div>
+
+    <script>
+        const messagesContainer = document.getElementById('messagesContainer');
+        const messageInput = document.getElementById('messageInput');
+        const sendButton = document.getElementById('sendButton');
+        let messages = [];
+
+        window.addEventListener('load', function() {
+            loadMessages();
+            setupEventListeners();
+            scrollToBottom();
+        });
+
+        function setupEventListeners() {
+            sendButton.addEventListener('click', sendMessage);
+            messageInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    sendMessage();
+                }
+            });
+            messageInput.addEventListener('input', function() {
+                sendButton.disabled = messageInput.value.trim() === '';
+            });
+        }
+
+        function sendMessage() {
+            const text = messageInput.value.trim();
+            if (!text) return;
+
+            const userMessage = {
+                id: Date.now(),
+                text: text,
+                sender: 'user',
+                timestamp: new Date()
+            };
+            messages.push(userMessage);
+            displayMessage(userMessage);
+            messageInput.value = '';
+            sendButton.disabled = true;
+            scrollToBottom();
+
+            setTimeout(function() {
+                const xiaokResponse = {
+                    id: Date.now() + 1,
+                    text: '✨ 你好哦，我收到了你的消息。',
+                    sender: 'xiaoke',
+                    timestamp: new Date()
+                };
+                messages.push(xiaokResponse);
+                displayMessage(xiaokResponse);
+                scrollToBottom();
+            }, 500);
+
+            saveMessages();
+        }
+
+        function displayMessage(message) {
+            const messageEl = document.createElement('div');
+            messageEl.className = 'message ' + (message.sender === 'user' ? 'sent' : 'received');
+
+            const time = message.timestamp.toLocaleString('zh-CN', {
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: false
+            });
+
+            messageEl.innerHTML = '<div class="message-bubble">' + escapeHtml(message.text) + '</div><div class="message-time">' + time + '</div>';
+            messagesContainer.appendChild(messageEl);
+        }
+
+        function scrollToBottom() {
+            setTimeout(function() {
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            }, 0);
+        }
+
+        function saveMessages() {
+            const serialized = messages.map(function(m) {
+                return {
+                    id: m.id,
+                    text: m.text,
+                    sender: m.sender,
+                    timestamp: m.timestamp.toISOString()
+                };
+            });
+            localStorage.setItem('dao-xiaoke-messages', JSON.stringify(serialized));
+        }
+
+        function loadMessages() {
+            const stored = localStorage.getItem('dao-xiaoke-messages');
+            if (stored) {
+                try {
+                    const parsed = JSON.parse(stored);
+                    messages = parsed.map(function(m) {
+                        return {
+                            id: m.id,
+                            text: m.text,
+                            sender: m.sender,
+                            timestamp: new Date(m.timestamp)
+                        };
+                    });
+                    messages.forEach(function(msg) {
+                        displayMessage(msg);
+                    });
+                } catch (e) {
+                    showEmptyState();
+                }
+            } else {
+                showEmptyState();
+            }
+        }
+
+        function showEmptyState() {
+            const emptyEl = document.createElement('div');
+            emptyEl.className = 'empty-state';
+            emptyEl.innerHTML = '<div class="empty-state-emoji">🐺</div><p>嘿，小克在这里。</p>';
+            messagesContainer.appendChild(emptyEl);
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+    </script>
+</body>
+</html>
