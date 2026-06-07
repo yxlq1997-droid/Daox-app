@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -251,6 +252,7 @@
             }
         }
     </style>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
     <div class="container">
@@ -279,6 +281,14 @@
     </div>
 
     <script>
+        // ===== Supabase初始化 =====
+        const SUPABASE_URL = 'https://yingyhznzncqigvmnwqk.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_6l-JwUBEXmaYNTcsNfItZg_Ubf-cAye';
+        const { createClient } = supabase;
+        const db = createClient(SUPABASE_URL, SUPABASE_KEY);
+        const USER_ID = 'dao-xiaoke-relationship';
+        // ===== Supabase初始化完成 =====
+
         const messagesContainer = document.getElementById('messagesContainer');
         const messageInput = document.getElementById('messageInput');
         const sendButton = document.getElementById('sendButton');
@@ -303,7 +313,7 @@
             });
         }
 
-        function sendMessage() {
+        async function sendMessage() {
             const text = messageInput.value.trim();
             if (!text) return;
 
@@ -319,18 +329,57 @@
             sendButton.disabled = true;
             scrollToBottom();
 
-            setTimeout(function() {
-                const xiaokResponse = {
+            try {
+                // 调用后端API
+                const response = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        message: text
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.error) {
+                    console.error('API错误:', data.error);
+                    // 显示错误消息
+                    const errorMessage = {
+                        id: Date.now() + 1,
+                        text: '❌ 哎呀，小克暂时有点问题，请稍后再试。',
+                        sender: 'xiaoke',
+                        timestamp: new Date()
+                    };
+                    messages.push(errorMessage);
+                    displayMessage(errorMessage);
+                } else {
+                    // 显示Claude的真实回复
+                    const xiaokResponse = {
+                        id: Date.now() + 1,
+                        text: data.reply,
+                        sender: 'xiaoke',
+                        timestamp: new Date()
+                    };
+                    messages.push(xiaokResponse);
+                    displayMessage(xiaokResponse);
+                }
+                scrollToBottom();
+            } catch (err) {
+                console.error('请求失败:', err);
+                const errorMessage = {
                     id: Date.now() + 1,
-                    text: '✨ 你好哦，我收到了你的消息。',
+                    text: '❌ 网络错误，请检查连接。',
                     sender: 'xiaoke',
                     timestamp: new Date()
                 };
-                messages.push(xiaokResponse);
-                displayMessage(xiaokResponse);
+                messages.push(errorMessage);
+                displayMessage(errorMessage);
                 scrollToBottom();
-            }, 500);
+            }
 
+            sendButton.disabled = false;
             saveMessages();
         }
 
@@ -356,7 +405,7 @@
             }, 0);
         }
 
-        function saveMessages() {
+        async function saveMessages() {
             const serialized = messages.map(function(m) {
                 return {
                     id: m.id,
@@ -365,10 +414,59 @@
                     timestamp: m.timestamp.toISOString()
                 };
             });
+            
+            // 保存到localStorage
             localStorage.setItem('dao-xiaoke-messages', JSON.stringify(serialized));
+            
+            // 保存到Supabase
+            try {
+                const { data, error } = await db
+                    .from('relationship_observations')
+                    .upsert({
+                        user_id: USER_ID,
+                        messages: serialized,
+                        updated_at: new Date().toISOString()
+                    }, { onConflict: 'user_id' });
+                
+                if (error) {
+                    console.error('Supabase保存错误:', error);
+                } else {
+                    console.log('✅ 消息已保存到Supabase');
+                }
+            } catch (err) {
+                console.error('Supabase连接错误:', err);
+            }
         }
 
-        function loadMessages() {
+        async function loadMessages() {
+            try {
+                // 先尝试从Supabase加载
+                const { data, error } = await db
+                    .from('relationship_observations')
+                    .select('messages')
+                    .eq('user_id', USER_ID)
+                    .single();
+                
+                if (data && data.messages) {
+                    console.log('✅ 从Supabase加载消息');
+                    messages = data.messages.map(function(m) {
+                        return {
+                            id: m.id,
+                            text: m.text,
+                            sender: m.sender,
+                            timestamp: new Date(m.timestamp)
+                        };
+                    });
+                    messages.forEach(function(msg) {
+                        displayMessage(msg);
+                    });
+                    return;
+                }
+            } catch (err) {
+                console.log('Supabase加载失败，尝试localStorage');
+            }
+            
+            // 如果Supabase没有数据，从localStorage加载
             const stored = localStorage.getItem('dao-xiaoke-messages');
             if (stored) {
                 try {
