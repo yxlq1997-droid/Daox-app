@@ -1,4 +1,4 @@
-import { createClient } from '@supabase/supabase-js';
+const { createClient } = require('@supabase/supabase-js');
 
 const supabase = createClient(
   'https://yingyhznzncqigvmnwqk.supabase.co',
@@ -60,7 +60,6 @@ export default async function handler(req, res) {
 
     const reply = data.content[0].text;
 
-    // 存入Supabase
     await supabase.from('messages').insert([
       { role: 'user', content: message },
       { role: 'assistant', content: reply }
