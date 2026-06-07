@@ -4,6 +4,7 @@
   "private": true,
   "dependencies": {
     "@anthropic-ai/sdk": "^0.24.3"
+    "@supabase/supabase-js": "^2.39.0"
   },
   "scripts": {
     "start": "node server.js"
