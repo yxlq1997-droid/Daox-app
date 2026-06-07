@@ -1,12 +1,12 @@
 {
-  "name": "daox-app",
-  "version": "1.0.0",
-  "private": true,
-  "dependencies": {
-    "@anthropic-ai/sdk": "^0.24.3"
-    "@supabase/supabase-js": "^2.39.0"
-  },
-  "scripts": {
-    "start": "node server.js"
-  }
+    "name": "daox-app",
+    "version": "1.0.0",
+    "private": true,
+    "dependencies": {
+        "@anthropic-ai/sdk": "^0.24.3",
+        "@supabase/supabase-js": "^2.39.0"
+    },
+    "scripts": {
+        "start": "node server.js"
+    }
 }
