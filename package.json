@@ -1,5 +1,11 @@
 {
   "name": "daox-app",
   "version": "1.0.0",
-  "private": true
+  "private": true,
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.24.3"
+  },
+  "scripts": {
+    "start": "node server.js"
+  }
 }
