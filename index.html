@@ -505,6 +505,29 @@
             div.textContent = text;
             return div.innerHTML;
         }
+    // 每10秒拉取新消息
+setInterval(async function() {
+  const { data } = await db
+    .from('messages')
+    .select('*')
+    .order('created_at', { ascending: true })
+    .limit(50);
+  
+  if (data && data.length > messages.length) {
+    const newMsgs = data.slice(messages.length);
+    newMsgs.forEach(function(m) {
+      const msg = {
+        id: m.id,
+        text: m.content,
+        sender: m.role === 'user' ? 'user' : 'xiaoke',
+        timestamp: new Date(m.created_at)
+      };
+      messages.push(msg);
+      displayMessage(msg);
+    });
+    scrollToBottom();
+  }
+}, 10000);
     </script>
 </body>
 </html>
