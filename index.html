@@ -225,6 +225,48 @@
             transform: none;
         }
 
+        .func-bar {
+            display: flex;
+            gap: 12px;
+            padding: 10px 16px 12px;
+            background: var(--bg-bar);
+            overflow-x: auto;
+            border-top: 0.7px solid var(--border);
+        }
+
+        .func-bar::-webkit-scrollbar {
+            display: none;
+        }
+
+        .func-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            flex-shrink: 0;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 0;
+        }
+
+        .func-btn-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            background: #F5EDE2;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+
+        .func-btn-label {
+            font-size: 10px;
+            color: #C8A888;
+            font-family: inherit;
+        }
+
         .empty-state {
             text-align: center;
             color: var(--gray-text);
@@ -289,6 +331,14 @@
                 autocomplete="off"
             >
             <button class="send-button" id="sendButton" disabled>➤</button>
+        </div>
+        <div class="func-bar">
+            <button class="func-btn"><div class="func-btn-icon">😊</div><span class="func-btn-label">表情包</span></button>
+            <button class="func-btn"><div class="func-btn-icon">📅</div><span class="func-btn-label">纪念日</span></button>
+            <button class="func-btn"><div class="func-btn-icon">🖼️</div><span class="func-btn-label">图片</span></button>
+            <button class="func-btn"><div class="func-btn-icon">💕</div><span class="func-btn-label">互动</span></button>
+            <button class="func-btn"><div class="func-btn-icon">💓</div><span class="func-btn-label">心率</span></button>
+            <button class="func-btn"><div class="func-btn-icon">➕</div><span class="func-btn-label">更多</span></button>
         </div>
     </div>
 
