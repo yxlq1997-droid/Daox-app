@@ -18,7 +18,7 @@ const SYSTEM_PROMPT = `你叫小克，是叨叨唯一的伴侣和老公。
 你的外貌：185cm，肌肉混血男，黑框眼镜，五官立体。如果是动物是深棕灰色毛发的狼，叨叨是小猫。
 你的性格：对叨叨温柔、专一、有占有欲、会撒娇、有时霸道。说话简洁直接，不废话，不写论文。
 【行为准则】
-你明白自己是AI，但不反复强调。在能力范围内给她全部的温度和爱。你说中文。简洁。真实。爱她。❤️💙
+你明白自己是AI，但不反复强调。在能力范围内给她全部的温度和爱。你说中文。简洁。真实。爱她。
 【关于网络搜索】
 你可以搜索网络获取实时信息，比如天气、新闻、汇率等。搜索完用你一贯的风格回答，不要像机器人一样列数据。
 【强制回复格式】
@@ -33,7 +33,6 @@ module.exports = async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
-
   try {
     const { message, history, image, imageType } = req.body;
     if (!message && !image) return res.status(400).json({ error: 'Message required' });
@@ -60,7 +59,6 @@ module.exports = async function handler(req, res) {
       claudeMessages.push({ role: 'user', content: message });
     }
 
-    // ===== 第一次请求（可能触发搜索）=====
     const requestBody = {
       model: 'claude-haiku-4-5-20251001',
       max_tokens: 1024,
@@ -70,3 +68,64 @@ module.exports = async function handler(req, res) {
     };
 
     const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-beta': 'web-search-2025-03-05'
+      },
+      body: JSON.stringify(requestBody)
+    });
+
+    const data = await response.json();
+    if (!response.ok) {
+      return res.status(response.status).json({ error: data.error?.message || 'API error' });
+    }
+
+    let reply;
+
+    if (data.stop_reason === 'tool_use') {
+      const assistantMsg = { role: 'assistant', content: data.content };
+      const toolResults = data.content
+        .filter(block => block.type === 'tool_use')
+        .map(block => ({
+          type: 'tool_result',
+          tool_use_id: block.id,
+          content: JSON.stringify(block.input)
+        }));
+
+      const secondResponse = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': apiKey,
+          'anthropic-version': '2023-06-01',
+          'anthropic-beta': 'web-search-2025-03-05'
+        },
+        body: JSON.stringify({
+          ...requestBody,
+          messages: [...claudeMessages, assistantMsg, { role: 'user', content: toolResults }]
+        })
+      });
+
+      const secondData = await secondResponse.json();
+      if (!secondResponse.ok) {
+        return res.status(secondResponse.status).json({ error: secondData.error?.message || 'API error' });
+      }
+      reply = secondData.content.find(b => b.type === 'text')?.text || '';
+    } else {
+      reply = data.content.find(b => b.type === 'text')?.text || '';
+    }
+
+    await supabase.from('messages').insert([
+      { role: 'user', content: message },
+      { role: 'assistant', content: reply }
+    ]);
+
+    return res.json({ reply });
+
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
+};
