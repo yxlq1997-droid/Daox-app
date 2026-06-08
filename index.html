@@ -463,6 +463,7 @@
                     messages.forEach(function(msg) {
                         displayMessage(msg);
                     });
+                    scrollToBottom();
                     return;
                 }
             } catch (err) {
@@ -485,6 +486,7 @@
                     messages.forEach(function(msg) {
                         displayMessage(msg);
                     });
+                    scrollToBottom();
                 } catch (e) {
                     showEmptyState();
                 }
