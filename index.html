@@ -797,8 +797,9 @@ setInterval(async function() {
     const { data } = await db
       .from('messages')
       .select('*')
+      .eq('role', 'assistant')
       .order('created_at', { ascending: true })
-      .gt('created_at', lastMessageTime ? lastMessageTime.toISOString() : new Date(0).toISOString());
+      .gt('created_at', lastMessageTime || new Date(0).toISOString());
 
     if (data && data.length > 0) {
       data.forEach(function(m) {
@@ -984,8 +985,9 @@ setInterval(async function() {
               const { data } = await db
                 .from('messages')
                 .select('*')
+                .eq('role', 'assistant')
                 .order('created_at', { ascending: true })
-                .gt('created_at', lastMessageTime ? lastMessageTime.toISOString() : new Date(0).toISOString());
+                .gt('created_at', lastMessageTime || new Date(0).toISOString());
 
               if (data && data.length > 0) {
                 data.forEach(function(m) {
