@@ -92,7 +92,9 @@ module.exports = async function handler(req, res) {
     const reply = data.content.find(b => b.type === 'text')?.text || '';
 
     // ===== 检测搜图意图 =====
+    console.log('[搜图检测] reply:', reply);
     const searchMatch = reply.match(/\[SEARCH_IMAGE:\s*(.+?)\]/);
+    console.log('[搜图检测] searchMatch:', searchMatch);
     if (searchMatch) {
       const searchQuery = searchMatch[1];
       const cleanReply = reply.replace(/\[SEARCH_IMAGE:\s*.+?\]/, '').trim();
