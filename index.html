@@ -402,6 +402,34 @@
             color: var(--gray-dark);
         }
 
+        .sticker-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            padding: 4px 0;
+        }
+
+        .sticker-item {
+            width: 100%;
+            aspect-ratio: 1;
+            border-radius: 8px;
+            object-fit: cover;
+            cursor: pointer;
+            transition: transform 0.15s;
+        }
+
+        .sticker-item:active {
+            transform: scale(0.93);
+        }
+
+        .message-sticker {
+            width: 120px;
+            height: 120px;
+            border-radius: 8px;
+            object-fit: cover;
+            display: block;
+        }
+
         .empty-state {
             text-align: center;
             color: var(--gray-text);
@@ -468,12 +496,29 @@
             <button class="send-button" id="sendButton" disabled>➤</button>
         </div>
         <div class="func-bar">
-            <button class="func-btn"><div class="func-btn-icon"><i class="ti ti-mood-smile"></i></div><span class="func-btn-label">表情包</span></button>
+            <button class="func-btn" id="btnSticker"><div class="func-btn-icon"><i class="ti ti-mood-smile"></i></div><span class="func-btn-label">表情包</span></button>
             <button class="func-btn" id="btnAnniversary"><div class="func-btn-icon"><i class="ti ti-calendar-heart"></i></div><span class="func-btn-label">纪念日</span></button>
             <button class="func-btn"><div class="func-btn-icon"><i class="ti ti-photo"></i></div><span class="func-btn-label">图片</span></button>
             <button class="func-btn" id="btnInteract"><div class="func-btn-icon"><i class="ti ti-heart"></i></div><span class="func-btn-label">互动</span></button>
             <button class="func-btn"><div class="func-btn-icon"><i class="ti ti-activity-heartbeat"></i></div><span class="func-btn-label">心率</span></button>
             <button class="func-btn"><div class="func-btn-icon"><i class="ti ti-plus"></i></div><span class="func-btn-label">更多</span></button>
+        </div>
+    </div>
+
+    <div class="panel-overlay" id="stickerOverlay">
+        <div class="anniversary-panel">
+            <div class="panel-header">
+                <div class="panel-title">表情包</div>
+                <button class="panel-close" id="stickerClose">×</button>
+            </div>
+            <div class="sticker-grid">
+                <img class="sticker-item" src="/stickers/01-shocked.png">
+                <img class="sticker-item" src="/stickers/02-work-tired.png">
+                <img class="sticker-item" src="/stickers/03-happy.png">
+                <img class="sticker-item" src="/stickers/04-kiss.png">
+                <img class="sticker-item" src="/stickers/05-aggrieved.png">
+                <img class="sticker-item" src="/stickers/06-ignore-you.png">
+            </div>
         </div>
     </div>
 
@@ -631,7 +676,10 @@
 
             const isUser = message.sender === 'user';
             const avatarSrc = isUser ? '/dao-avatar.jpg' : '/xiaoke-avatar.jpg';
-            messageEl.innerHTML = '<img src="' + avatarSrc + '" class="msg-avatar"><div class="message-bubble">' + escapeHtml(message.text) + '</div><div class="message-time">' + time + '</div>';
+            const contentHtml = message.sticker
+                ? '<img src="' + message.sticker + '" class="message-sticker">'
+                : '<div class="message-bubble">' + escapeHtml(message.text) + '</div>';
+            messageEl.innerHTML = '<img src="' + avatarSrc + '" class="msg-avatar">' + contentHtml + '<div class="message-time">' + time + '</div>';
             messagesContainer.appendChild(messageEl);
         }
 
@@ -763,6 +811,36 @@ setInterval(async function() {
     scrollToBottom();
   }
 }, 10000);
+
+        // ===== 表情包面板 =====
+        (function() {
+            const overlay = document.getElementById('stickerOverlay');
+
+            document.getElementById('btnSticker').addEventListener('click', function() {
+                overlay.classList.add('open');
+            });
+            document.getElementById('stickerClose').addEventListener('click', function() {
+                overlay.classList.remove('open');
+            });
+            overlay.addEventListener('click', function(e) {
+                if (e.target === overlay) overlay.classList.remove('open');
+            });
+            overlay.querySelectorAll('.sticker-item').forEach(function(img) {
+                img.addEventListener('click', function() {
+                    overlay.classList.remove('open');
+                    const stickerMsg = {
+                        id: Date.now(),
+                        text: '',
+                        sticker: img.src,
+                        sender: 'user',
+                        timestamp: new Date()
+                    };
+                    messages.push(stickerMsg);
+                    displayMessage(stickerMsg);
+                    scrollToBottom();
+                });
+            });
+        })();
 
         // ===== 互动面板 =====
         (function() {
