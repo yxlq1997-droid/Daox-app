@@ -900,9 +900,15 @@ setInterval(async function() {
         }
 
         // ===== 心率按钮 =====
-        document.getElementById('btnHeartRate').addEventListener('click', function() {
-            window.location.href = 'shortcuts://run-shortcut?name=心率指令';
-        });
+        (function() {
+            let heartRatePending = false;
+            document.getElementById('btnHeartRate').addEventListener('click', function() {
+                if (heartRatePending) return;
+                heartRatePending = true;
+                window.location.href = 'shortcuts://run-shortcut?name=心率指令';
+                setTimeout(function() { heartRatePending = false; }, 3000);
+            });
+        })();
 
         // ===== 互动面板 =====
         (function() {
