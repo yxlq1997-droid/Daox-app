@@ -609,6 +609,16 @@
             sendButton.disabled = true;
             scrollToBottom();
 
+            const thinkingEl = document.createElement('div');
+            thinkingEl.className = 'message received';
+            thinkingEl.id = 'thinking-bubble';
+            thinkingEl.innerHTML = '<img src="/xiaoke-avatar.jpg" class="msg-avatar"><div class="message-bubble" style="color:#C8A888">🔍 搜一下...</div>';
+            messagesContainer.appendChild(thinkingEl);
+            scrollToBottom();
+
+            const controller = new AbortController();
+            const timeoutId = setTimeout(function() { controller.abort(); }, 30000);
+
             try {
                 // 调用Vercel后端
                 const response = await fetch('https://daox-app-psi.vercel.app/api/chat', {
@@ -616,17 +626,20 @@
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                body: JSON.stringify({
+                    body: JSON.stringify({
                         message: text,
                         history: messages.slice(-20)
-                    })
+                    }),
+                    signal: controller.signal
                 });
+                clearTimeout(timeoutId);
 
                 const data = await response.json();
+                const tb = document.getElementById('thinking-bubble');
+                if (tb) tb.remove();
 
                 if (!response.ok) {
                     console.error('API错误:', data);
-                    // 如果是401错误，清除保存的key
                     if (response.status === 401) {
                         localStorage.removeItem('claude-api-key');
                     }
@@ -639,7 +652,6 @@
                     messages.push(errorMessage);
                     displayMessage(errorMessage);
                 } else {
-                    // 显示Claude的真实回复
                     const xiaokResponse = {
                         id: Date.now() + 1,
                         text: data.reply,
@@ -652,10 +664,13 @@
                 }
                 scrollToBottom();
             } catch (err) {
-                console.error('请求失败:', err);
+                clearTimeout(timeoutId);
+                const tb = document.getElementById('thinking-bubble');
+                if (tb) tb.remove();
+                const isTimeout = err.name === 'AbortError';
                 const errorMessage = {
                     id: Date.now() + 1,
-                    text: '❌ 网络错误: ' + err.message,
+                    text: isTimeout ? '小克好像睡着了，再试一次？' : '❌ 网络错误: ' + err.message,
                     sender: 'xiaoke',
                     timestamp: new Date()
                 };
