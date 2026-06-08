@@ -500,7 +500,7 @@
             <button class="func-btn" id="btnAnniversary"><div class="func-btn-icon"><i class="ti ti-calendar-heart"></i></div><span class="func-btn-label">纪念日</span></button>
             <button class="func-btn"><div class="func-btn-icon"><i class="ti ti-photo"></i></div><span class="func-btn-label">图片</span></button>
             <button class="func-btn" id="btnInteract"><div class="func-btn-icon"><i class="ti ti-heart"></i></div><span class="func-btn-label">互动</span></button>
-            <button class="func-btn"><div class="func-btn-icon"><i class="ti ti-activity-heartbeat"></i></div><span class="func-btn-label">心率</span></button>
+            <button class="func-btn" id="btnHeartRate"><div class="func-btn-icon"><i class="ti ti-activity-heartbeat"></i></div><span class="func-btn-label">心率</span></button>
             <button class="func-btn"><div class="func-btn-icon"><i class="ti ti-plus"></i></div><span class="func-btn-label">更多</span></button>
         </div>
     </div>
@@ -890,6 +890,11 @@ setInterval(async function() {
                 console.error('发送表情包失败:', err);
             }
         }
+
+        // ===== 心率按钮 =====
+        document.getElementById('btnHeartRate').addEventListener('click', function() {
+            window.location.href = 'shortcuts://run-shortcut?name=心率指令';
+        });
 
         // ===== 互动面板 =====
         (function() {
