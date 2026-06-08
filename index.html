@@ -568,6 +568,7 @@
         const messageInput = document.getElementById('messageInput');
         const sendButton = document.getElementById('sendButton');
         let messages = [];
+        let lastMessageTime = null;
 
         window.addEventListener('load', function() {
             loadMessages();
@@ -744,6 +745,7 @@
                     messages.forEach(function(msg) {
                         displayMessage(msg);
                     });
+                    lastMessageTime = messages.length > 0 ? messages[messages.length-1].timestamp : new Date(0);
                     scrollToBottom();
                     return;
                 }
@@ -767,6 +769,7 @@
                     messages.forEach(function(msg) {
                         displayMessage(msg);
                     });
+                    lastMessageTime = messages.length > 0 ? messages[messages.length-1].timestamp : new Date(0);
                     scrollToBottom();
                 } catch (e) {
                     showEmptyState();
@@ -795,11 +798,10 @@ setInterval(async function() {
       .from('messages')
       .select('*')
       .order('created_at', { ascending: true })
-      .limit(100);
+      .gt('created_at', lastMessageTime ? lastMessageTime.toISOString() : new Date(0).toISOString());
 
-    if (data && data.length > messages.length) {
-      const newMsgs = data.slice(messages.length);
-      newMsgs.forEach(function(m) {
+    if (data && data.length > 0) {
+      data.forEach(function(m) {
         const msg = {
           id: m.id,
           text: m.content,
@@ -808,11 +810,12 @@ setInterval(async function() {
         };
         messages.push(msg);
         displayMessage(msg);
+        lastMessageTime = msg.timestamp;
       });
       scrollToBottom();
     }
-  } catch(err) {
-    console.log('刷新失败', err);
+  } catch(e) {
+    console.log('拉取失败', e);
   }
 }, 5000);
 
