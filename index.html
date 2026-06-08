@@ -971,6 +971,36 @@ setInterval(async function() {
                 if (e.target === overlay) overlay.classList.remove('open');
             });
         })();
+
+        // ===== 页面可见性监听 =====
+        document.addEventListener('visibilitychange', async function() {
+          if (document.visibilityState === 'visible') {
+            try {
+              const { data } = await db
+                .from('messages')
+                .select('*')
+                .order('created_at', { ascending: true })
+                .gt('created_at', lastMessageTime ? lastMessageTime.toISOString() : new Date(0).toISOString());
+
+              if (data && data.length > 0) {
+                data.forEach(function(m) {
+                  const msg = {
+                    id: m.id,
+                    text: m.content,
+                    sender: m.role === 'user' ? 'user' : 'xiaoke',
+                    timestamp: new Date(m.created_at)
+                  };
+                  messages.push(msg);
+                  displayMessage(msg);
+                  lastMessageTime = msg.timestamp;
+                });
+                scrollToBottom();
+              }
+            } catch(e) {
+              console.log('拉取失败', e);
+            }
+          }
+        });
     </script>
 </body>
 </html>
