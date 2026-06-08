@@ -103,7 +103,9 @@ module.exports = async function handler(req, res) {
         const cx = process.env.GOOGLE_CX;
         const searchUrl = `https://www.googleapis.com/customsearch/v1?key=${apiKey}&cx=${cx}&q=${encodeURIComponent(searchQuery)}&searchType=image&num=3`;
         const searchRes = await fetch(searchUrl);
+        console.log('[搜图结果] status:', searchRes.status);
         const searchData = await searchRes.json();
+        console.log('[搜图结果] items数量:', searchData.items?.length, '错误:', searchData.error?.message);
         const images = (searchData.items || []).map(item => ({ url: item.link, title: item.title }));
         await supabase.from('messages').insert([
           { role: 'user', content: message },
