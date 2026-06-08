@@ -793,7 +793,6 @@
         }
     // 每10秒拉取新消息
 setInterval(async function() {
-  console.log('轮询中...', new Date().toISOString());
   try {
     const { data } = await db
       .from('messages')
