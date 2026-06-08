@@ -83,40 +83,7 @@ module.exports = async function handler(req, res) {
       return res.status(response.status).json({ error: data.error?.message || 'API error' });
     }
 
-    let reply;
-
-    if (data.stop_reason === 'tool_use') {
-      const assistantMsg = { role: 'assistant', content: data.content };
-      const toolResults = data.content
-        .filter(block => block.type === 'tool_use')
-        .map(block => ({
-          type: 'tool_result',
-          tool_use_id: block.id,
-          content: JSON.stringify(block.input)
-        }));
-
-      const secondResponse = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-api-key': apiKey,
-          'anthropic-version': '2023-06-01',
-          'anthropic-beta': 'web-search-2025-03-05'
-        },
-        body: JSON.stringify({
-          ...requestBody,
-          messages: [...claudeMessages, assistantMsg, { role: 'user', content: toolResults }]
-        })
-      });
-
-      const secondData = await secondResponse.json();
-      if (!secondResponse.ok) {
-        return res.status(secondResponse.status).json({ error: secondData.error?.message || 'API error' });
-      }
-      reply = secondData.content.find(b => b.type === 'text')?.text || '';
-    } else {
-      reply = data.content.find(b => b.type === 'text')?.text || '';
-    }
+    const reply = data.content.find(b => b.type === 'text')?.text || '';
 
     await supabase.from('messages').insert([
       { role: 'user', content: message },
