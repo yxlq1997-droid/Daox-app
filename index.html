@@ -662,6 +662,17 @@
                     messages.push(xiaokResponse);
                     displayMessage(xiaokResponse);
                     lastMessageTime = new Date().toISOString();
+                    if (data.images && data.images.length > 0) {
+                        const imgEl = document.createElement('div');
+                        imgEl.className = 'message received';
+                        let imgHtml = '<img src="/xiaoke-avatar.jpg" class="msg-avatar"><div style="display:flex;flex-wrap:wrap;gap:8px;max-width:70%;">';
+                        data.images.forEach(function(img) {
+                            imgHtml += '<img src="' + img.url + '" style="width:120px;height:120px;object-fit:cover;border-radius:8px;cursor:pointer;" onerror="this.style.display=\'none\'" onclick="window.open(\'' + img.url + '\',\'_blank\')">';
+                        });
+                        imgHtml += '</div>';
+                        imgEl.innerHTML = imgHtml;
+                        messagesContainer.appendChild(imgEl);
+                    }
                 }
                 scrollToBottom();
             } catch (err) {
