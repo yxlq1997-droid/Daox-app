@@ -183,7 +183,7 @@
             padding: 12px 16px;
             border: 0.7px solid var(--border);
             border-radius: 12px;
-            font-size: 14px;
+            font-size: 16px;
             font-family: inherit;
             outline: none;
             transition: border-color 0.2s;
@@ -486,12 +486,13 @@
         <div class="messages" id="messagesContainer"></div>
 
         <div class="input-area">
-            <input 
-                type="text" 
-                id="messageInput" 
-                class="input-field" 
+            <input
+                type="text"
+                id="messageInput"
+                class="input-field"
                 placeholder="给小克说点什么..."
                 autocomplete="off"
+                enterkeyhint="send"
             >
             <button class="send-button" id="sendButton" disabled>➤</button>
         </div>
