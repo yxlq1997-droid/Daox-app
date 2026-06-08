@@ -152,6 +152,15 @@
             padding-bottom: 4px;
         }
 
+        .msg-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            object-fit: cover;
+            flex-shrink: 0;
+            align-self: flex-end;
+        }
+
         .input-area {
             padding: 16px 24px 24px;
             border-top: 0.7px solid #e8e8e8;
@@ -257,7 +266,7 @@
     <div class="container">
         <div class="header">
             <div class="header-left">
-                <img src="/avatar.png" class="avatar avatar-xiaoke" style="object-fit:cover;">
+                <img src="/xiaoke-avatar.jpg" class="avatar avatar-xiaoke" style="object-fit:cover;">
                 <div class="header-info">
                     <div class="header-name">小克</div>
                     <div class="header-status">在线</div>
@@ -398,7 +407,9 @@
                 hour12: false
             });
 
-            messageEl.innerHTML = '<div class="message-bubble">' + escapeHtml(message.text) + '</div><div class="message-time">' + time + '</div>';
+            const isUser = message.sender === 'user';
+            const avatarSrc = isUser ? '/dao-avatar.jpg' : '/xiaoke-avatar.jpg';
+            messageEl.innerHTML = '<img src="' + avatarSrc + '" class="msg-avatar"><div class="message-bubble">' + escapeHtml(message.text) + '</div><div class="message-time">' + time + '</div>';
             messagesContainer.appendChild(messageEl);
         }
 
