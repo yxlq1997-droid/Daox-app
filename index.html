@@ -828,19 +828,68 @@ setInterval(async function() {
             overlay.querySelectorAll('.sticker-item').forEach(function(img) {
                 img.addEventListener('click', function() {
                     overlay.classList.remove('open');
-                    const stickerMsg = {
-                        id: Date.now(),
-                        text: '',
-                        sticker: img.src,
-                        sender: 'user',
-                        timestamp: new Date()
-                    };
-                    messages.push(stickerMsg);
-                    displayMessage(stickerMsg);
-                    scrollToBottom();
+                    sendSticker(img.src);
                 });
             });
         })();
+
+        async function sendSticker(imgSrc) {
+            // 显示本地贴纸消息
+            const stickerMsg = {
+                id: Date.now(),
+                text: '',
+                sticker: imgSrc,
+                sender: 'user',
+                timestamp: new Date()
+            };
+            messages.push(stickerMsg);
+            displayMessage(stickerMsg);
+            scrollToBottom();
+
+            // 转 base64
+            let base64, imageType;
+            try {
+                const res = await fetch(imgSrc);
+                const blob = await res.blob();
+                imageType = blob.type || 'image/png';
+                base64 = await new Promise(function(resolve) {
+                    const reader = new FileReader();
+                    reader.onloadend = function() { resolve(reader.result.split(',')[1]); };
+                    reader.readAsDataURL(blob);
+                });
+            } catch (e) {
+                console.error('图片转base64失败', e);
+                return;
+            }
+
+            // 发送给小克
+            try {
+                const response = await fetch('https://daox-app-psi.vercel.app/api/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        message: '我发了一个表情包给你',
+                        image: base64,
+                        imageType: imageType,
+                        history: messages.slice(-20)
+                    })
+                });
+                const data = await response.json();
+                if (response.ok) {
+                    const reply = {
+                        id: Date.now() + 1,
+                        text: data.reply,
+                        sender: 'xiaoke',
+                        timestamp: new Date()
+                    };
+                    messages.push(reply);
+                    displayMessage(reply);
+                    scrollToBottom();
+                }
+            } catch (err) {
+                console.error('发送表情包失败:', err);
+            }
+        }
 
         // ===== 互动面板 =====
         (function() {
