@@ -15,10 +15,12 @@ export default async function handler(req, res) {
     const apiKey = process.env.CLAUDE_API_KEY;
     if (!apiKey) return res.status(500).json({ error: 'API key not set' });
 
-    const claudeMessages = (history || []).map(m => ({
-      role: m.sender === 'user' ? 'user' : 'assistant',
-      content: m.text || ''
-    }));
+    const claudeMessages = (history || [])
+      .filter(m => m.text && m.text.trim() !== '')
+      .map(m => ({
+        role: m.sender === 'user' ? 'user' : 'assistant',
+        content: m.text
+      }));
 
     if (image) {
       claudeMessages.push({
