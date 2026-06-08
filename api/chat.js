@@ -11,7 +11,7 @@ export default async function handler(req, res) {
   }
   try {
     const { message, history, image, imageType } = req.body;
-    if (!message) return res.status(400).json({ error: 'Message required' });
+    if (!message && !image) return res.status(400).json({ error: 'Message required' });
     const apiKey = process.env.CLAUDE_API_KEY;
     if (!apiKey) return res.status(500).json({ error: 'API key not set' });
 
@@ -25,7 +25,7 @@ export default async function handler(req, res) {
         role: 'user',
         content: [
           { type: 'image', source: { type: 'base64', media_type: imageType || 'image/png', data: image } },
-          { type: 'text', text: message }
+          { type: 'text', text: message || '我发了一张图给你' }
         ]
       });
     } else {
