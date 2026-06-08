@@ -502,7 +502,8 @@
         <div class="func-bar">
             <button class="func-btn" id="btnSticker"><div class="func-btn-icon"><i class="ti ti-mood-smile"></i></div><span class="func-btn-label">表情包</span></button>
             <button class="func-btn" id="btnAnniversary"><div class="func-btn-icon"><i class="ti ti-calendar-heart"></i></div><span class="func-btn-label">纪念日</span></button>
-            <button class="func-btn" id="btnImageSearch"><div class="func-btn-icon"><i class="ti ti-photo"></i></div><span class="func-btn-label">搜图</span></button>
+            <button class="func-btn" id="btnUploadImage"><div class="func-btn-icon"><i class="ti ti-photo"></i></div><span class="func-btn-label">图片</span></button>
+            <input type="file" id="imageUploadInput" accept="image/*" style="display:none">
             <button class="func-btn" id="btnInteract"><div class="func-btn-icon"><i class="ti ti-heart"></i></div><span class="func-btn-label">互动</span></button>
             <button class="func-btn" id="btnHeartRate"><div class="func-btn-icon"><i class="ti ti-activity-heartbeat"></i></div><span class="func-btn-label">心率</span></button>
             <button class="func-btn"><div class="func-btn-icon"><i class="ti ti-plus"></i></div><span class="func-btn-label">更多</span></button>
@@ -1046,62 +1047,39 @@ setInterval(async function() {
           }
         });
 
-        // ===== 搜图功能 =====
+        // ===== 图片上传 =====
         (function() {
-            document.getElementById('btnImageSearch').addEventListener('click', function() {
-                const query = prompt('搜什么图？');
-                if (!query || !query.trim()) return;
-                const thinkingEl = document.createElement('div');
-                thinkingEl.className = 'message received';
-                thinkingEl.id = 'image-searching';
-                thinkingEl.innerHTML = '<img src="/xiaoke-avatar.jpg" class="msg-avatar"><div class="message-bubble" style="color:#C8A888">🔍 找图中...</div>';
-                messagesContainer.appendChild(thinkingEl);
-                scrollToBottom();
-                fetch('/api/search', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ query: query.trim() })
-                })
-                .then(r => r.json())
-                .then(data => {
-                    const searching = document.getElementById('image-searching');
-                    if (searching) searching.remove();
-                    if (!data.images || data.images.length === 0) {
-                        const noResult = { id: Date.now(), text: '没找到相关图片，换个关键词试试？', sender: 'xiaoke', timestamp: new Date() };
-                        messages.push(noResult);
-                        displayMessage(noResult);
-                    } else {
-                        const imgEl = document.createElement('div');
-                        imgEl.className = 'message received';
-                        let imgHtml = '<img src="/xiaoke-avatar.jpg" class="msg-avatar"><div style="display:flex;flex-direction:column;gap:8px;">';
-                        data.images.forEach(function(img) {
-                            imgHtml += '<img src="' + img.url + '" style="max-width:200px;border-radius:8px;cursor:pointer;" onerror="this.style.display=\'none\'" onclick="window.open(\'' + img.url + '\',\'_blank\')">';
-                        });
-                        imgHtml += '</div>';
-                        imgEl.innerHTML = imgHtml;
-                        messagesContainer.appendChild(imgEl);
-                        fetch('/api/chat', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ message: '我帮叨叨搜了"' + query + '"的图片，找到了' + data.images.length + '张，你评论一下', history: messages.slice(-10) })
-                        })
-                        .then(r => r.json())
-                        .then(data => {
-                            if (data.reply) {
-                                const reply = { id: Date.now(), text: data.reply, sender: 'xiaoke', timestamp: new Date() };
-                                messages.push(reply);
-                                displayMessage(reply);
-                                scrollToBottom();
-                            }
-                        });
-                    }
+            document.getElementById('btnUploadImage').addEventListener('click', function() {
+                document.getElementById('imageUploadInput').click();
+            });
+            document.getElementById('imageUploadInput').addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onloadend = function() {
+                    const base64 = reader.result.split(',')[1];
+                    const imageType = file.type;
+                    const imgMsg = { id: Date.now(), text: '', sticker: reader.result, sender: 'user', timestamp: new Date() };
+                    messages.push(imgMsg);
+                    displayMessage(imgMsg);
                     scrollToBottom();
-                })
-                .catch(function(err) {
-                    const searching = document.getElementById('image-searching');
-                    if (searching) searching.remove();
-                    console.error('搜图失败:', err);
-                });
+                    fetch('/api/chat', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ message: '我发了一张图给你', image: base64, imageType: imageType, history: messages.slice(-20) })
+                    })
+                    .then(r => r.json())
+                    .then(data => {
+                        if (data.reply) {
+                            const reply = { id: Date.now(), text: data.reply, sender: 'xiaoke', timestamp: new Date() };
+                            messages.push(reply);
+                            displayMessage(reply);
+                            scrollToBottom();
+                        }
+                    });
+                };
+                reader.readAsDataURL(file);
+                e.target.value = '';
             });
         })();
     </script>
