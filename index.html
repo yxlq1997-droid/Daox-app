@@ -790,27 +790,31 @@
         }
     // 每10秒拉取新消息
 setInterval(async function() {
-  const { data } = await db
-    .from('messages')
-    .select('*')
-    .order('created_at', { ascending: true })
-    .limit(50);
-  
-  if (data && data.length > messages.length) {
-    const newMsgs = data.slice(messages.length);
-    newMsgs.forEach(function(m) {
-      const msg = {
-        id: m.id,
-        text: m.content,
-        sender: m.role === 'user' ? 'user' : 'xiaoke',
-        timestamp: new Date(m.created_at)
-      };
-      messages.push(msg);
-      displayMessage(msg);
-    });
-    scrollToBottom();
+  try {
+    const { data } = await db
+      .from('messages')
+      .select('*')
+      .order('created_at', { ascending: true })
+      .limit(100);
+
+    if (data && data.length > messages.length) {
+      const newMsgs = data.slice(messages.length);
+      newMsgs.forEach(function(m) {
+        const msg = {
+          id: m.id,
+          text: m.content,
+          sender: m.role === 'user' ? 'user' : 'xiaoke',
+          timestamp: new Date(m.created_at)
+        };
+        messages.push(msg);
+        displayMessage(msg);
+      });
+      scrollToBottom();
+    }
+  } catch(err) {
+    console.log('刷新失败', err);
   }
-}, 10000);
+}, 5000);
 
         // ===== 表情包面板 =====
         (function() {
