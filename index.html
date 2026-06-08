@@ -644,6 +644,7 @@
                     };
                     messages.push(xiaokResponse);
                     displayMessage(xiaokResponse);
+                    lastMessageTime = new Date().toISOString();
                 }
                 scrollToBottom();
             } catch (err) {
@@ -723,6 +724,23 @@
             }
         }
 
+        async function initLastMessageTime() {
+            try {
+                const { data } = await db
+                    .from('messages')
+                    .select('created_at')
+                    .eq('role', 'assistant')
+                    .order('created_at', { ascending: false })
+                    .limit(1);
+                const assistantMsgs = data || [];
+                if (assistantMsgs.length > 0) {
+                    lastMessageTime = assistantMsgs[0].created_at;
+                }
+            } catch(e) {
+                console.log('initLastMessageTime失败', e);
+            }
+        }
+
         async function loadMessages() {
             try {
                 // 先尝试从Supabase加载
@@ -745,7 +763,7 @@
                     messages.forEach(function(msg) {
                         displayMessage(msg);
                     });
-                    lastMessageTime = messages.length > 0 ? messages[messages.length-1].timestamp : new Date(0);
+                    await initLastMessageTime();
                     scrollToBottom();
                     return;
                 }
@@ -769,7 +787,7 @@
                     messages.forEach(function(msg) {
                         displayMessage(msg);
                     });
-                    lastMessageTime = messages.length > 0 ? messages[messages.length-1].timestamp : new Date(0);
+                    await initLastMessageTime();
                     scrollToBottom();
                 } catch (e) {
                     showEmptyState();
