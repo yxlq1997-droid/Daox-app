@@ -66,7 +66,7 @@ module.exports = async function handler(req, res) {
     }
 
     const requestBody = {
-      model: 'claude-sonnet-4-6',
+      model: message && (message.includes('搜') || message.includes('查') || message.includes('找') || message.includes('天气') || message.includes('新闻') || message.includes('汇率')) ? 'claude-sonnet-4-6' : 'claude-haiku-4-5-20251001',
       max_tokens: 1024,
       system: SYSTEM_PROMPT,
       tools: [{ type: 'web_search_20250305', name: 'web_search' }],
