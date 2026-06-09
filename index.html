@@ -858,7 +858,7 @@ setInterval(async function() {
           sender: m.role === 'user' ? 'user' : 'xiaoke',
           timestamp: new Date(m.created_at)
         };
-        if (messages.some(existing => existing.id === m.id)) return;
+        if (messages.some(existing => existing.text === m.content && existing.sender === 'xiaoke')) return;
         messages.push(msg);
         displayMessage(msg);
         lastMessageTime = msg.timestamp;
@@ -1047,7 +1047,7 @@ setInterval(async function() {
                     sender: m.role === 'user' ? 'user' : 'xiaoke',
                     timestamp: new Date(m.created_at)
                   };
-                  if (messages.some(existing => existing.id === m.id)) return;
+                  if (messages.some(existing => existing.text === m.content && existing.sender === 'xiaoke')) return;
                   messages.push(msg);
                   displayMessage(msg);
                   lastMessageTime = msg.timestamp;
